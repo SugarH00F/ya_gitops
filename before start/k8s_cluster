@@ -1,0 +1,26 @@
+#Создаём публичный зональный кластер
+
+yc managed-kubernetes cluster create \
+  --name=kube-infra \
+  --public-ip \
+  --network-name=default \
+  --service-account-name=kube-infra \
+  --node-service-account-name=kube-infra \
+  --release-channel=rapid \
+  --zone=ru-central1-b \
+  --security-group-ids=<id созданной группы безопасности> \# посмотреть группы беопасности yc vpc security-group list
+  --folder-name petprojekt1 
+#Создаём рабочую группу из одного узла
+
+  yc managed-kubernetes node-group create \
+  --name=group-1 \
+  --cluster-name=kube-infra \
+  --cores=2 \
+  --memory=4G \
+  --preemptible \
+  --auto-scale=initial=1,min=1,max=2 \
+  --network-interface=subnets=default-ru-central1-b,ipv4-address=nat,security-group-ids=<id созданной группы безопасности> \
+  --folder-name default \
+  --metadata="ssh-keys=<имя пользователя>:<публичный ключ>" # смотри уроки по созданию ssh ключа
+#Получаем кубконфиг
+yc managed-kubernetes cluster get-credentials --name=kube-infra --external 
